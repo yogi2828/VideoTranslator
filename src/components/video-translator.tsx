@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -6,10 +7,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, UploadCloud, Download, Play, Pause } from 'lucide-react';
+import { Loader2, UploadCloud, Download, Play, Pause, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { LANGUAGES, VOICES, VOICE_MAP } from '@/lib/constants';
 import { transcribeUploadedVideo } from '@/ai/flows/transcribe-uploaded-video';
@@ -232,10 +233,11 @@ export function VideoTranslator() {
                                 </div>
                                 <p className="text-xs text-muted-foreground">{videoFile?.name || 'MP4, MOV, etc. up to 8MB'}</p>
                               </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField control={form.control} name="targetLanguage" render={({ field }) => (
