@@ -24,43 +24,14 @@ export const LANGUAGES = [
 ];
 
 export const VOICES = [
-  { value: 'en-US-News-K', label: 'English (US, News)' },
-  { value: 'es-US-News-G', label: 'Spanish (US, News)' },
-  { value: 'fr-FR-Standard-D', label: 'French (France, Standard)' },
-  { value: 'de-DE-Standard-F', label: 'German (Germany, Standard)' },
-  { value: 'ja-JP-Standard-A', label: 'Japanese (Japan, Standard)' },
-  { value: 'it-IT-Standard-A', label: 'Italian (Italy, Standard)' },
-  { value: 'pt-BR-Standard-A', label: 'Portuguese (Brazil, Standard)' },
-  { value: 'ru-RU-Standard-A', label: 'Russian (Russia, Standard)' },
-  { value: 'cmn-CN-Standard-A', label: 'Chinese (Mandarin, Standard)' },
-  { value: 'hi-IN-Wavenet-A', label: 'Hindi (India, Female)' },
-  { value: 'hi-IN-Wavenet-B', label: 'Hindi (India, Male)' },
-  { value: 'bn-IN-Wavenet-A', label: 'Bengali (India, Female)' },
-  { value: 'bn-IN-Wavenet-B', label: 'Bengali (India, Male)' },
-  { value: 'te-IN-Standard-A', label: 'Telugu (India, Female)' },
-  { value: 'te-IN-Standard-B', label: 'Telugu (India, Male)' },
-  { value: 'ta-IN-Wavenet-A', label: 'Tamil (India, Female)' },
-  { value: 'ta-IN-Wavenet-B', label: 'Tamil (India, Male)' },
-  { value: 'mr-IN-Wavenet-A', label: 'Marathi (India, Female)' },
-  { value: 'mr-IN-Wavenet-B', label: 'Marathi (India, Male)' },
-  { value: 'gu-IN-Wavenet-A', label: 'Gujarati (India, Female)' },
-  { value: 'gu-IN-Wavenet-B', label: 'Gujarati (India, Male)' },
-  { value: 'kn-IN-Wavenet-A', label: 'Kannada (India, Female)' },
-  { value: 'kn-IN-Wavenet-B', label: 'Kannada (India, Male)' },
-  { value: 'ml-IN-Wavenet-A', label: 'Malayalam (India, Female)' },
-  { value: 'ml-IN-Wavenet-B', label: 'Malayalam (India, Male)' },
-  { value: 'ar-XA-Wavenet-A', label: 'Arabic (Female)' },
-  { value: 'ar-XA-Wavenet-B', label: 'Arabic (Male)' },
-  { value: 'ko-KR-Wavenet-A', label: 'Korean (South Korea, Female)' },
-  { value: 'ko-KR-Wavenet-B', label: 'Korean (South Korea, Male)' },
-  { value: 'nl-NL-Wavenet-A', label: 'Dutch (Netherlands, Female)' },
-  { value: 'nl-NL-Wavenet-B', label: 'Dutch (Netherlands, Male)' },
+  { value: 'male', label: 'Male' },
+  { value: 'female', label: 'Female' },
 ];
 
 export const QUALITIES = [
-  { value: 'high', label: 'High' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'low', label: 'Low' },
+  { value: '1080p', label: '1080p (Best)' },
+  { value: '720p', label: '720p (Standard)' },
+  { value: '480p', label: '480p (Fastest)' },
 ];
 
 export const INITIAL_PROGRESS_STEPS: ProgressStep[] = [

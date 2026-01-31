@@ -1,8 +1,64 @@
 'use client';
-import { useUser } from '@/firebase';
+import { useUser, useCollection } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Header } from '@/components/header';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Timestamp } from 'firebase/firestore';
+import { Download } from 'lucide-react';
+import React from 'react';
+
+interface HistoryItem {
+  id: string;
+  videoName: string;
+  targetLanguage: string;
+  createdAt: Timestamp;
+  audioUrl: string;
+}
+
+function HistoryContents({ userId }: { userId: string }) {
+  const { data: history, isLoading } = useCollection<HistoryItem>(`users/${userId}/history`);
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
+
+  if (!history || history.length === 0) {
+    return <p>Your past translations will appear here.</p>;
+  }
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Video</TableHead>
+          <TableHead>Language</TableHead>
+          <TableHead>Date</TableHead>
+          <TableHead className="text-right">Download</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {history.sort((a,b) => b.createdAt.toMillis() - a.createdAt.toMillis()).map((item) => (
+          <TableRow key={item.id}>
+            <TableCell className="font-medium">{item.videoName}</TableCell>
+            <TableCell>{item.targetLanguage}</TableCell>
+            <TableCell>{item.createdAt ? item.createdAt.toDate().toLocaleDateString() : 'N/A'}</TableCell>
+            <TableCell className="text-right">
+              <Button asChild variant="ghost" size="sm">
+                <a href={item.audioUrl} download={`${item.videoName.split('.')[0]}_${item.targetLanguage}.wav`}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Audio
+                </a>
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
 
 export default function HistoryPage() {
   const { user, isLoading } = useUser();
@@ -30,8 +86,7 @@ export default function HistoryPage() {
             <CardTitle className="font-headline text-3xl">Translation History</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>Your past translations will appear here.</p>
-            {/* History items will be rendered here */}
+             <HistoryContents userId={user.uid} />
           </CardContent>
         </Card>
       </main>

@@ -1,9 +1,8 @@
 import { Header } from '@/components/header';
-import { VideoTranslator } from '@/components/video-translator';
 import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mic, Globe, FileDown, FastForward, Lock, UploadCloud, Languages, BotMessageSquare, Download } from 'lucide-react';
+import Link from 'next/link';
 
 const features = [
   {
@@ -71,7 +70,7 @@ export default function Home() {
               Upload → Translate → Download PDF & Translated Audio
             </p>
             <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 text-lg px-8 py-6">
-              <a href="#upload">👉 Start Translating</a>
+              <Link href="/translate">👉 Start Translating</Link>
             </Button>
           </div>
         </section>
@@ -121,13 +120,6 @@ export default function Home() {
                 </div>
             </div>
           </div>
-        </section>
-
-        {/* Upload Section - The actual app */}
-        <section id="upload" className="py-16 md:py-24">
-             <div className="container mx-auto px-4">
-                <VideoTranslator />
-            </div>
         </section>
       </main>
       <Footer />

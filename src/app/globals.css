@@ -20,7 +20,7 @@ body {
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 340 83% 60%;
+    --accent: 262 83% 58%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -85,7 +85,7 @@ body {
   body {
     @apply bg-background text-foreground;
   }
-  .auth-gradient-background {
+  .app-gradient-background {
     @apply bg-gradient-to-br from-[#4a00e0] to-[#8e2de2];
   }
 }
