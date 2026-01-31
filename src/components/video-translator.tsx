@@ -8,15 +8,13 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -30,9 +28,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, UploadCloud, Play, Info, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Loader2, UploadCloud, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { LANGUAGES, VOICES, QUALITIES, INITIAL_PROGRESS_STEPS } from '@/lib/constants';
+import { LANGUAGES, VOICES, VOICE_MAP, INITIAL_PROGRESS_STEPS } from '@/lib/constants';
 import { transcribeUploadedVideo } from '@/ai/flows/transcribe-uploaded-video';
 import { translateTranscribedText } from '@/ai/flows/translate-transcribed-text';
 import { generateTranslatedAudio } from '@/ai/flows/generate-translated-audio';
@@ -41,8 +39,6 @@ import { ResultsDisplay } from './results-display';
 import { useAuth, useFirestore, useUser } from '@/firebase';
 import { saveTranslationHistory } from '@/firebase/firestore/history';
 import { useRouter } from 'next/navigation';
-import { Checkbox } from '@/components/ui/checkbox';
-
 
 const formSchema = z.object({
   video: z
@@ -51,11 +47,13 @@ const formSchema = z.object({
     .refine(
       (files) => files?.[0]?.type.startsWith('video/'),
       'Only video files are allowed.'
+    )
+    .refine(
+      (files) => files?.[0]?.size <= 50 * 1024 * 1024,
+      'File size must be 50MB or less.'
     ),
   targetLanguage: z.string().min(1, 'Please select a language.'),
-  autoDetect: z.boolean().default(false),
   voice: z.string().min(1, 'Please select a voice.'),
-  quality: z.string(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -81,8 +79,6 @@ export function VideoTranslator() {
     defaultValues: {
       targetLanguage: 'es',
       voice: 'male',
-      quality: '720p',
-      autoDetect: false,
     },
   });
 
@@ -130,15 +126,12 @@ export function VideoTranslator() {
       });
       updateProgress('translate', 'complete');
       
-      const voiceMap = {
-        male: 'es-US-News-G', // Example mapping
-        female: 'es-US-Standard-C'
-      }
+      const voiceName = VOICE_MAP[data.targetLanguage as keyof typeof VOICE_MAP]?.[data.voice as keyof typeof VOICE_MAP['en']] || VOICE_MAP['en']['male'];
 
       updateProgress('generate-audio', 'in-progress');
       const { audioDataUri } = await generateTranslatedAudio({
         translatedText,
-        voiceName: voiceMap[data.voice as keyof typeof voiceMap] || 'es-US-News-G',
+        voiceName: voiceName,
       });
       updateProgress('generate-audio', 'complete');
       
@@ -170,7 +163,7 @@ export function VideoTranslator() {
   
   const StepIndicator = ({ currentStep }: { currentStep: number }) => (
     <div className="flex items-center justify-center gap-4 mb-6">
-      {[1, 2, 3].map((s) => (
+      {[1, 2].map((s) => (
         <div
           key={s}
           className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
@@ -216,7 +209,7 @@ export function VideoTranslator() {
           <CardContent className="space-y-6 min-h-[320px]">
             {step === 1 && (
                <div className="space-y-4 animate-in fade-in">
-                  <h3 className="font-semibold text-lg">Upload your video</h3>
+                  <h3 className="font-semibold text-lg">1. Upload your video</h3>
                   <FormField
                     control={form.control}
                     name="video"
@@ -254,14 +247,14 @@ export function VideoTranslator() {
             
             {step === 2 && (
               <div className="space-y-4 animate-in fade-in">
-                 <h3 className="font-semibold text-lg">Translation Preferences</h3>
+                 <h3 className="font-semibold text-lg">2. Translation & Voice</h3>
                   <FormField
                     control={form.control}
                     name="targetLanguage"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Language</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={form.watch('autoDetect')}>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a language" />
@@ -279,83 +272,32 @@ export function VideoTranslator() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={form.control}
-                    name="autoDetect"
+                    name="voice"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                         <FormControl>
-                            <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
+                      <FormItem>
+                        <FormLabel>Voice</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a voice" />
+                            </SelectTrigger>
                           </FormControl>
-                        <FormLabel className="font-normal">Auto detect language (AI)</FormLabel>
+                          <SelectContent>
+                            {VOICES.map((voice) => (
+                              <SelectItem key={voice.value} value={voice.value}>
+                                {voice.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
               </div>
             )}
-
-            {step === 3 && (
-                <div className="space-y-4 animate-in fade-in">
-                    <h3 className="font-semibold text-lg">Voice and Quality</h3>
-                    <FormField
-                      control={form.control}
-                      name="voice"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Voice</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a voice" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {VOICES.map((voice) => (
-                                <SelectItem key={voice.value} value={voice.value}>
-                                  {voice.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button variant="outline" className="w-full" type="button" disabled>
-                      <Play className="mr-2 h-4 w-4" /> Preview Voice
-                    </Button>
-                    <FormField
-                      control={form.control}
-                      name="quality"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Quality</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select quality" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {QUALITIES.map((q) => (
-                                <SelectItem key={q.value} value={q.value}>
-                                  {q.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                           <FormDescription className="flex items-center gap-1 text-xs"><Info className="w-3 h-3"/> Higher quality takes more time</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                </div>
-            )}
-
           </CardContent>
 
           <CardFooter className="flex justify-between">
@@ -367,7 +309,7 @@ export function VideoTranslator() {
             >
               <ArrowLeft/> Back
             </Button>
-            {step < 3 ? (
+            {step < 2 ? (
                 <Button
                     type="button"
                     onClick={() => setStep(s => s + 1)}
