@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Languages, Loader2, UploadCloud } from 'lucide-react';
+import { Loader2, UploadCloud } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { LANGUAGES, VOICES, QUALITIES, INITIAL_PROGRESS_STEPS } from '@/lib/constants';
 import { transcribeUploadedVideo } from '@/ai/flows/transcribe-uploaded-video';
@@ -147,7 +147,7 @@ export function VideoTranslator() {
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-lg">
+    <Card className="w-full max-w-2xl mx-auto shadow-lg border-2">
       <CardHeader>
         <CardTitle className="font-headline text-3xl">Upload Your Video</CardTitle>
         <CardDescription>
@@ -276,10 +276,8 @@ export function VideoTranslator() {
             >
               {status === 'processing' ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Languages className="mr-2 h-4 w-4" />
-              )}
-              Translate Video
+              ) : null}
+              👉 Start Translation
             </Button>
           </CardFooter>
         </form>
