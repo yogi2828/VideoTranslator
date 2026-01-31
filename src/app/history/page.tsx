@@ -6,7 +6,7 @@ import { Header } from '@/components/header';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Timestamp } from 'firebase/firestore';
-import { Download } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import React from 'react';
 
 interface HistoryItem {
