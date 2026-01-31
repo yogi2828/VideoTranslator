@@ -3,8 +3,8 @@
 import { Film, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from './ui/button';
-import { useUser } from '@/firebase';
-import { getAuth, signOut } from 'firebase/auth';
+import { useAuth, useUser } from '@/firebase';
+import { signOut } from 'firebase/auth';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import {
   DropdownMenu,
@@ -19,9 +19,10 @@ import { useRouter } from 'next/navigation';
 export function Header() {
   const { user, isLoading } = useUser();
   const router = useRouter();
+  const auth = useAuth();
 
   const handleLogout = async () => {
-    const auth = getAuth();
+    if (!auth) return;
     await signOut(auth);
     router.push('/');
   };

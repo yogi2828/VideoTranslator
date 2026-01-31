@@ -24,10 +24,26 @@ function HistoryContents({ userId }: { userId: string }) {
   const generatePdf = (text: string, fileName: string) => {
     const doc = new jsPDF();
     doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(12);
+
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 15;
-    const textLines = doc.splitTextToSize(text, pageWidth - margin * 2);
-    doc.text(textLines, margin, 20);
+    const maxLineWidth = pageWidth - margin * 2;
+    const textLines = doc.splitTextToSize(text, maxLineWidth);
+
+    let y = 20;
+    const lineHeight = 8;
+
+    textLines.forEach((line: string) => {
+      if (y + lineHeight > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+      }
+      doc.text(line, margin, y);
+      y += lineHeight;
+    });
+
     doc.save(`${fileName}.pdf`);
   };
 

@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, UploadCloud, ArrowRight, ArrowLeft, Download, Play, Pause } from 'lucide-react';
+import { Loader2, UploadCloud, Download, Play, Pause } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { LANGUAGES, VOICES, VOICE_MAP } from '@/lib/constants';
 import { transcribeUploadedVideo } from '@/ai/flows/transcribe-uploaded-video';
@@ -30,24 +30,27 @@ const formSchema = z.object({
       'Only video files are allowed.'
     )
     .refine(
-      (files) => files?.[0]?.size <= 50 * 1024 * 1024,
-      'File size must be 50MB or less.'
+      (files) => files?.[0]?.size <= 8 * 1024 * 1024,
+      'File size must be 8MB or less.'
     ),
   targetLanguage: z.string().min(1, 'Please select a language.'),
   voice: z.string().min(1, 'Please select a voice.'),
 });
 type FormValues = z.infer<typeof formSchema>;
 
-const ProcessingStep = ({ label }: { label: string }) => (
+const ProcessingStep = ({ label, done }: { label: string; done?: boolean }) => (
   <div className="flex items-center gap-2 text-muted-foreground">
-    <Loader2 className="h-4 w-4 animate-spin" />
-    <span>{label}...</span>
+    {done ? (
+       <span className="text-green-500">✓</span>
+    ) : (
+      <Loader2 className="h-4 w-4 animate-spin" />
+    )}
+    <span>{label}</span>
   </div>
 );
 
 export function VideoTranslator() {
   const [status, setStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
-  const [formStep, setFormStep] = useState(1);
   
   const [transcription, setTranscription] = useState('');
   const [translatedText, setTranslatedText] = useState('');
@@ -84,7 +87,6 @@ export function VideoTranslator() {
 
   const resetState = () => {
     setStatus('idle');
-    setFormStep(1);
     setTranscription('');
     setTranslatedText('');
     setVideoUrl(null);
@@ -108,6 +110,8 @@ export function VideoTranslator() {
     try {
       const videoDataUri = await readFileAsDataURL(videoFile);
 
+      // --- Start processing, updating UI incrementally ---
+
       const { transcription } = await transcribeUploadedVideo({ videoDataUri });
       setTranscription(transcription);
 
@@ -124,6 +128,7 @@ export function VideoTranslator() {
       });
       setAudioUrl(audioDataUri);
       
+      // Save to history once all data is available
       saveTranslationHistory(firestore, user.uid, {
         videoName: videoFile.name,
         translatedText: translatedText,
@@ -173,10 +178,24 @@ export function VideoTranslator() {
     if (!translatedText) return;
     const doc = new jsPDF();
     doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(12);
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 15;
-    const textLines = doc.splitTextToSize(translatedText, pageWidth - margin * 2);
-    doc.text(textLines, margin, 20);
+    const maxLineWidth = pageWidth - margin * 2;
+    const textLines = doc.splitTextToSize(translatedText, maxLineWidth);
+
+    let y = 20;
+    const lineHeight = 8;
+    textLines.forEach((line: string) => {
+      if (y + lineHeight > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+      }
+      doc.text(line, margin, y);
+      y += lineHeight;
+    });
+
     doc.save('translation.pdf');
   };
 
@@ -192,48 +211,36 @@ export function VideoTranslator() {
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <CardHeader className="text-center">
                 <CardTitle className="font-headline text-2xl">Video Translator</CardTitle>
-                 <div className="flex items-center justify-center gap-4 pt-4">
-                  {[1, 2].map((s) => (
-                    <div key={s} className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${s === formStep ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                      {s}
-                    </div>
-                  ))}
-                </div>
+                <CardDescription>Upload a video, choose a language, and get a translation.</CardDescription>
               </CardHeader>
 
-              <CardContent className="space-y-6 min-h-[320px]">
-                {formStep === 1 && (
-                   <div className="space-y-4 animate-in fade-in">
-                      <h3 className="font-semibold text-lg">1. Upload your video</h3>
-                      <FormField control={form.control} name="video" render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <div className="relative flex justify-center w-full h-32 px-6 pt-5 pb-6 border-2 border-dashed rounded-md border-input">
-                                <div className="space-y-1 text-center">
-                                  <UploadCloud className="w-12 h-12 mx-auto text-muted-foreground" />
-                                  <div className="flex text-sm text-muted-foreground">
-                                    <Input id="file-upload" type="file" accept="video/*" className="sr-only" onChange={(e) => field.onChange(e.target.files)} />
-                                    <label htmlFor="file-upload" className="relative font-medium rounded-md cursor-pointer text-primary hover:text-primary/80 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ring">
-                                      <span>Upload a file</span>
-                                    </label>
-                                    <p className="pl-1">or drag and drop</p>
-                                  </div>
-                                  <p className="text-xs text-muted-foreground">{videoFile?.name || 'MP4, MOV, etc. up to 50MB'}</p>
+              <CardContent className="space-y-6">
+                 <div className="space-y-4">
+                    <FormField control={form.control} name="video" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>1. Upload your video</FormLabel>
+                          <FormControl>
+                            <div className="relative flex justify-center w-full h-32 px-6 pt-5 pb-6 border-2 border-dashed rounded-md border-input">
+                              <div className="space-y-1 text-center">
+                                <UploadCloud className="w-12 h-12 mx-auto text-muted-foreground" />
+                                <div className="flex text-sm text-muted-foreground">
+                                  <Input id="file-upload" type="file" accept="video/*" className="sr-only" onChange={(e) => field.onChange(e.target.files)} />
+                                  <label htmlFor="file-upload" className="relative font-medium rounded-md cursor-pointer text-primary hover:text-primary/80 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ring">
+                                    <span>Upload a file</span>
+                                  </label>
+                                  <p className="pl-1">or drag and drop</p>
                                 </div>
+                                <p className="text-xs text-muted-foreground">{videoFile?.name || 'MP4, MOV, etc. up to 8MB'}</p>
                               </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
-                   </div>
-                )}
-                
-                {formStep === 2 && (
-                  <div className="space-y-4 animate-in fade-in">
-                     <h3 className="font-semibold text-lg">2. Translation & Voice</h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField control={form.control} name="targetLanguage" render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Language</FormLabel>
+                            <FormLabel>2. Language</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl><SelectTrigger><SelectValue placeholder="Select a language" /></SelectTrigger></FormControl>
                               <SelectContent>{LANGUAGES.map((lang) => (<SelectItem key={lang.value} value={lang.value}>{lang.label}</SelectItem>))}</SelectContent>
@@ -243,7 +250,7 @@ export function VideoTranslator() {
                         )} />
                       <FormField control={form.control} name="voice" render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Voice</FormLabel>
+                            <FormLabel>3. Voice</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl><SelectTrigger><SelectValue placeholder="Select a voice" /></SelectTrigger></FormControl>
                               <SelectContent>{VOICES.map((voice) => (<SelectItem key={voice.value} value={voice.value}>{voice.label}</SelectItem>))}</SelectContent>
@@ -251,20 +258,15 @@ export function VideoTranslator() {
                             <FormMessage />
                           </FormItem>
                         )} />
-                  </div>
-                )}
+                    </div>
+                 </div>
               </CardContent>
 
-              <CardFooter className="flex justify-between">
-                <Button type="button" variant="outline" onClick={() => setFormStep(s => s - 1)} disabled={formStep === 1}><ArrowLeft/> Back</Button>
-                {formStep < 2 ? (
-                    <Button type="button" onClick={() => setFormStep(s => s + 1)} disabled={!videoFile} >Next <ArrowRight/></Button>
-                ) : (
-                    <Button type="submit" disabled={status === 'processing' || !form.formState.isValid}>
-                      {status === 'processing' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Start Translation
-                    </Button>
-                )}
+              <CardFooter className="flex justify-end">
+                <Button type="submit" disabled={status === 'processing' || !form.formState.isValid}>
+                  {status === 'processing' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Start Translation
+                </Button>
               </CardFooter>
             </form>
           </Form>
@@ -302,34 +304,29 @@ export function VideoTranslator() {
               </div>
 
               <div className="space-y-6">
-                <div>
+                 <div>
+                  <h4 className="font-semibold mb-2">Processing Status</h4>
+                  <div className="space-y-2">
+                    <ProcessingStep label="Transcribing audio" done={!!transcription} />
+                    <ProcessingStep label="Translating text" done={!!translatedText} />
+                    <ProcessingStep label="Generating voice" done={!!audioUrl} />
+                  </div>
+                </div>
+                <div className="border-t pt-4">
                   <FormLabel>Original Transcription</FormLabel>
-                  {transcription ? (
-                    <Textarea readOnly value={transcription} className="mt-2 h-36" />
-                  ) : (
-                    <ProcessingStep label="Extracting and transcribing audio" />
-                  )}
+                  <Textarea readOnly value={transcription || "..."} className="mt-2 h-24 bg-secondary" />
                 </div>
                  <div>
                   <FormLabel>Translated Text ({form.getValues('targetLanguage')})</FormLabel>
-                  {translatedText ? (
-                    <Textarea readOnly value={translatedText} className="mt-2 h-36" />
-                  ) : (
-                    transcription ? <ProcessingStep label="Translating text" /> : <p className="text-sm text-muted-foreground mt-2">Waiting for transcription...</p>
-                  )}
-                </div>
-                 <div>
-                  <FormLabel>Generated Audio</FormLabel>
-                   {!audioUrl && status === 'processing' && translatedText ? (
-                    <ProcessingStep label="Generating audio" />
-                  ) : (
-                    <p className="text-sm text-muted-foreground mt-2">
-                      {audioUrl ? 'Audio generated. Press play on the video.' : 'Waiting for translation...'}
-                    </p>
-                  )}
+                   <Textarea readOnly value={translatedText || "..."} className="mt-2 h-24 bg-secondary" />
                 </div>
               </div>
             </CardContent>
+             {status === 'error' && (
+                <CardFooter>
+                    <p className='text-sm text-destructive'>An error occurred during processing. Please try again.</p>
+                </CardFooter>
+             )}
           </Card>
            <div className="text-center">
               <Button onClick={resetState} variant="outline">Translate Another Video</Button>
