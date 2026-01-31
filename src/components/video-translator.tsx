@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, UploadCloud, Play, Info, ArrowRight, ArrowLeft, Checkbox } from 'lucide-react';
+import { Loader2, UploadCloud, Play, Info, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { LANGUAGES, VOICES, QUALITIES, INITIAL_PROGRESS_STEPS } from '@/lib/constants';
 import { transcribeUploadedVideo } from '@/ai/flows/transcribe-uploaded-video';
@@ -40,6 +40,7 @@ import { ResultsDisplay } from './results-display';
 import { useAuth, useFirestore, useUser } from '@/firebase';
 import { saveTranslationHistory } from '@/firebase/firestore/history';
 import { useRouter } from 'next/navigation';
+import { Checkbox } from '@/components/ui/checkbox';
 
 
 const formSchema = z.object({
