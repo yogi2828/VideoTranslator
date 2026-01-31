@@ -8,17 +8,29 @@ import { Button } from '@/components/ui/button';
 import { Timestamp } from 'firebase/firestore';
 import { Download, Loader2 } from 'lucide-react';
 import React from 'react';
+import jsPDF from 'jspdf';
 
 interface HistoryItem {
   id: string;
   videoName: string;
   targetLanguage: string;
   createdAt: Timestamp;
-  audioUrl: string;
+  translatedText: string;
 }
 
 function HistoryContents({ userId }: { userId: string }) {
   const { data: history, isLoading } = useCollection<HistoryItem>(`users/${userId}/history`);
+
+  const generatePdf = (text: string, fileName: string) => {
+    const doc = new jsPDF();
+    doc.setFont('Helvetica', 'normal');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    const textLines = doc.splitTextToSize(text, pageWidth - margin * 2);
+    doc.text(textLines, margin, 20);
+    doc.save(`${fileName}.pdf`);
+  };
+
 
   if (isLoading) {
     return <div className="flex justify-center items-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -45,11 +57,9 @@ function HistoryContents({ userId }: { userId: string }) {
             <TableCell>{item.targetLanguage}</TableCell>
             <TableCell>{item.createdAt ? item.createdAt.toDate().toLocaleDateString() : 'N/A'}</TableCell>
             <TableCell className="text-right">
-              <Button asChild variant="ghost" size="sm">
-                <a href={item.audioUrl} download={`${item.videoName.split('.')[0]}_${item.targetLanguage}.wav`}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Audio
-                </a>
+              <Button variant="ghost" size="sm" onClick={() => generatePdf(item.translatedText, `${item.videoName.split('.')[0]}_${item.targetLanguage}`)}>
+                <Download className="mr-2 h-4 w-4" />
+                PDF
               </Button>
             </TableCell>
           </TableRow>

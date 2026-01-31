@@ -47,12 +47,6 @@
         "translatedText": {
           "type": "string"
         },
-        "audioUrl": {
-          "type": "string"
-        },
-        "videoUrl": {
-          "type": "string"
-        },
         "targetLanguage": {
           "type": "string"
         },

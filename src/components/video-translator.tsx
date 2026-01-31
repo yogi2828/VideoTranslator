@@ -147,8 +147,6 @@ export function VideoTranslator() {
         saveTranslationHistory(firestore, auth.currentUser.uid, {
           videoName: videoFile.name,
           translatedText: translatedText,
-          audioUrl: audioDataUri,
-          videoUrl: '', // Blob URL is temporary, not storing.
           targetLanguage: data.targetLanguage,
         });
       }
@@ -339,7 +337,7 @@ export function VideoTranslator() {
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select quality" />
-                              </SelectTrigger>
+                              </T riggernewroman","serif";color:black'>
                             </FormControl>
                             <SelectContent>
                               {QUALITIES.map((q) => (

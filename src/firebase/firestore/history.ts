@@ -6,8 +6,6 @@ import { FirestorePermissionError } from '@/firebase/errors';
 interface HistoryData {
   videoName: string;
   translatedText: string;
-  audioUrl: string;
-  videoUrl: string;
   targetLanguage: string;
 }
 
