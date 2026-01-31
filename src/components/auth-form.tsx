@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
-  getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from 'firebase/auth';
@@ -32,6 +31,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Film } from 'lucide-react';
 import { Checkbox } from './ui/checkbox';
+import { useAuth } from '@/firebase';
 
 const signupSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -55,7 +55,7 @@ export function AuthForm({ type }: AuthFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const formSchema = type === 'login' ? loginSchema : signupSchema;
-  const auth = getAuth();
+  const auth = useAuth();
 
   type FormValues = z.infer<typeof formSchema>;
 
@@ -71,6 +71,16 @@ export function AuthForm({ type }: AuthFormProps) {
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     const { email, password } = data;
+
+    if (!auth) {
+      toast({
+        variant: 'destructive',
+        title: 'Authentication Failed',
+        description: 'Firebase Auth service is not available.',
+      });
+      setIsLoading(false);
+      return;
+    }
 
     try {
       if (type === 'signup') {
