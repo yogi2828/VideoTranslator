@@ -337,7 +337,7 @@ export function VideoTranslator() {
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select quality" />
-                              </T riggernewroman","serif";color:black'>
+                              </SelectTrigger>
                             </FormControl>
                             <SelectContent>
                               {QUALITIES.map((q) => (
