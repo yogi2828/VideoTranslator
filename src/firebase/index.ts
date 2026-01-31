@@ -9,20 +9,19 @@ import { useCollection } from './firestore/use-collection';
 import { useDoc } from './firestore/use-doc';
 
 let firebaseApp: FirebaseApp;
-let auth: Auth;
-let firestore: Firestore;
 
+// Singleton pattern to initialize Firebase safely on both client and server.
+if (!getApps().length) {
+  firebaseApp = initializeApp(firebaseConfig);
+} else {
+  firebaseApp = getApp();
+}
+
+const auth: Auth = getAuth(firebaseApp);
+const firestore: Firestore = getFirestore(firebaseApp);
+
+// This function now acts as a simple getter for the initialized instances.
 function initializeFirebase() {
-    if (typeof window !== 'undefined' && !getApps().length) {
-        firebaseApp = initializeApp(firebaseConfig);
-        auth = getAuth(firebaseApp);
-        firestore = getFirestore(firebaseApp);
-    } else if (getApps().length) {
-        firebaseApp = getApp();
-        auth = getAuth(firebaseApp);
-        firestore = getFirestore(firebaseApp);
-    }
-    
     return { firebaseApp, auth, firestore };
 }
 
