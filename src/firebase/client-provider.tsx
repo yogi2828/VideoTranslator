@@ -1,16 +1,27 @@
 'use client';
 import { FirebaseProvider } from './provider';
-import { initializeFirebase } from '.';
+import { initializeApp, getApp, getApps, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
+import { firebaseConfig } from './config';
 
-// Keep track of Firebase initialization status
-let firebaseInitialized = false;
-const { firebaseApp, auth, firestore } = initializeFirebase();
+// Keep track of Firebase instances
+let firebaseApp: FirebaseApp;
+let auth: Auth;
+let firestore: Firestore;
+
+// Initialize Firebase on the client.
+// This code will only run in the browser, preventing SSR issues.
+if (!getApps().length) {
+  firebaseApp = initializeApp(firebaseConfig);
+} else {
+  firebaseApp = getApp();
+}
+auth = getAuth(firebaseApp);
+firestore = getFirestore(firebaseApp);
+
 
 export function FirebaseClientProvider({ children }: { children: React.ReactNode }) {
-  if (!firebaseInitialized) {
-    firebaseInitialized = true;
-  }
-
   return (
     <FirebaseProvider value={{ firebaseApp, auth, firestore }}>
       {children}
