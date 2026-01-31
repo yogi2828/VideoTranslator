@@ -36,9 +36,11 @@ import { translateTranscribedText } from '@/ai/flows/translate-transcribed-text'
 import { generateTranslatedAudio } from '@/ai/flows/generate-translated-audio';
 import { ProgressTracker, type ProgressStep, type ProgressStatus } from './progress-tracker';
 import { ResultsDisplay } from './results-display';
-import { useAuth, useFirestore, useUser } from '@/firebase';
+import { useUser } from '@/firebase';
 import { saveTranslationHistory } from '@/firebase/firestore/history';
 import { useRouter } from 'next/navigation';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 const formSchema = z.object({
   video: z
@@ -70,8 +72,6 @@ export function VideoTranslator() {
 
   const { toast } = useToast();
   const { user, isLoading: isUserLoading } = useUser();
-  const auth = useAuth();
-  const firestore = useFirestore();
   const router = useRouter();
 
   const form = useForm<FormValues>({
@@ -98,6 +98,9 @@ export function VideoTranslator() {
   };
 
   const onSubmit = async (data: FormValues) => {
+    const auth = getAuth();
+    const firestore = getFirestore();
+
     if (!user) {
       toast({
         variant: 'destructive',
