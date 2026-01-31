@@ -1,5 +1,3 @@
-import { ProgressStep } from "@/components/progress-tracker";
-
 export const LANGUAGES = [
   { value: 'en', label: 'English' },
   { value: 'es', label: 'Spanish' },
@@ -52,11 +50,3 @@ export const VOICE_MAP: Record<string, Record<string, string>> = {
   'kn': { 'male': 'kn-IN-Standard-B', 'female': 'kn-IN-Standard-A' },
   'ml': { 'male': 'ml-IN-Standard-B', 'female': 'ml-IN-Standard-A' },
 };
-
-
-export const INITIAL_PROGRESS_STEPS: ProgressStep[] = [
-  { id: 'transcribe', label: 'Extracting & Transcribing Audio', status: 'pending' },
-  { id: 'translate', label: 'Translating Text', status: 'pending' },
-  { id: 'generate-audio', label: 'Generating Translated Audio', status: 'pending' },
-  { id: 'complete', label: 'Processing Complete', status: 'pending' },
-];
