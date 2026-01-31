@@ -30,17 +30,21 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
-import { Film } from 'lucide-react';
+import { Loader2, Film } from 'lucide-react';
+import { Checkbox } from './ui/checkbox';
 
-const formSchema = z.object({
+const signupSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
   password: z
     .string()
     .min(6, { message: 'Password must be at least 6 characters.' }),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+const loginSchema = signupSchema.extend({
+  captcha: z.boolean().refine((val) => val === true, {
+    message: "Please confirm you're not a robot.",
+  }),
+});
 
 interface AuthFormProps {
   type: 'login' | 'signup';
@@ -50,12 +54,16 @@ export function AuthForm({ type }: AuthFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const formSchema = type === 'login' ? loginSchema : signupSchema;
+
+  type FormValues = z.infer<typeof formSchema>;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
       password: '',
+      ...(type === 'login' && { captcha: false }),
     },
   });
 
@@ -75,7 +83,7 @@ export function AuthForm({ type }: AuthFormProps) {
         await signInWithEmailAndPassword(auth, email, password);
         toast({
           title: 'Logged In',
-          description: "Welcome back!",
+          description: 'Welcome back!',
         });
       }
       router.push('/');
@@ -104,9 +112,9 @@ export function AuthForm({ type }: AuthFormProps) {
     <Card className="w-full max-w-sm shadow-2xl">
       <CardHeader className="text-center">
         <Link href="/" className="flex items-center gap-3 justify-center mb-4">
-            <div className="p-2 bg-primary text-primary-foreground rounded-lg shadow-sm">
-                <Film className="h-6 w-6" />
-            </div>
+          <div className="p-2 bg-primary text-primary-foreground rounded-lg shadow-sm">
+            <Film className="h-6 w-6" />
+          </div>
         </Link>
         <CardTitle className="text-2xl font-bold">{title}</CardTitle>
         <CardDescription>Enter your details below</CardDescription>
@@ -140,10 +148,34 @@ export function AuthForm({ type }: AuthFormProps) {
                 </FormItem>
               )}
             />
+            {type === 'login' && (
+              <FormField
+                control={form.control}
+                name="captcha"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center space-x-2">
+                      <FormControl>
+                        <Checkbox
+                          id="captcha"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <label
+                        htmlFor="captcha"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        I am not a robot
+                      </label>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {buttonText}
             </Button>
           </form>

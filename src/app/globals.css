@@ -85,7 +85,4 @@ body {
   body {
     @apply bg-background text-foreground;
   }
-  .app-gradient-background {
-    @apply bg-gradient-to-br from-[#4a00e0] to-[#8e2de2];
-  }
 }
