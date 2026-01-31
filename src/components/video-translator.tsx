@@ -7,10 +7,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, UploadCloud, Download, Play, Pause, Info } from 'lucide-react';
+import { Loader2, UploadCloud, Download, Play, Pause } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { LANGUAGES, VOICES, VOICE_MAP } from '@/lib/constants';
 import { transcribeUploadedVideo } from '@/ai/flows/transcribe-uploaded-video';
@@ -21,6 +21,7 @@ import { saveTranslationHistory } from '@/firebase/firestore/history';
 import { useRouter } from 'next/navigation';
 import { Textarea } from '@/components/ui/textarea';
 import jsPDF from 'jspdf';
+import { Label } from '@/components/ui/label';
 
 const formSchema = z.object({
   video: z
@@ -315,11 +316,11 @@ export function VideoTranslator() {
                   </div>
                 </div>
                 <div className="border-t pt-4">
-                  <FormLabel>Original Transcription</FormLabel>
+                  <Label>Original Transcription</Label>
                   <Textarea readOnly value={transcription || "..."} className="mt-2 h-24 bg-secondary" />
                 </div>
                  <div>
-                  <FormLabel>Translated Text ({form.getValues('targetLanguage')})</FormLabel>
+                  <Label>Translated Text ({form.getValues('targetLanguage')})</Label>
                    <Textarea readOnly value={translatedText || "..."} className="mt-2 h-24 bg-secondary" />
                 </div>
               </div>
