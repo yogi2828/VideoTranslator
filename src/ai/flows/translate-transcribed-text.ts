@@ -36,7 +36,7 @@ const translateTranscribedTextPrompt = ai.definePrompt({
   name: 'translateTranscribedTextPrompt',
   input: {schema: TranslateTranscribedTextInputSchema},
   output: {schema: TranslateTranscribedTextOutputSchema},
-  model: 'googleai/gemini-1.5-flash',
+  model: 'googleai/gemini-pro',
   prompt: `Translate the following text into {{{targetLanguage}}}:\n\n{{{text}}}`,
 });
 
