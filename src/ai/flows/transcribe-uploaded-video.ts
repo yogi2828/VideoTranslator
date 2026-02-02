@@ -1,3 +1,4 @@
+
 // This is a server-side file.
 'use server';
 
@@ -38,7 +39,7 @@ const transcribeUploadedVideoPrompt = ai.definePrompt({
   name: 'transcribeUploadedVideoPrompt',
   input: {schema: TranscribeUploadedVideoInputSchema},
   output: {schema: TranscribeUploadedVideoOutputSchema},
-  model: 'googleai/gemini-pro-vision',
+  model: 'googleai/gemini-2.5-flash',
   prompt: `Transcribe the audio from the following video into text:\n\n{{media url=videoDataUri}}`,
 });
 
