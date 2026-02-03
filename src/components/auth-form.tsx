@@ -154,7 +154,7 @@ export function AuthForm({ type }: AuthFormProps) {
                     <FormLabel>Password</FormLabel>
                     {type === 'login' && (
                       <Link
-                        href="#"
+                        href="/forgot-password"
                         className="ml-auto inline-block text-sm underline"
                       >
                         Forgot your password?
