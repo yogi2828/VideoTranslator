@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, UploadCloud, Download, Play, Pause } from 'lucide-react';
+import { Loader2, UploadCloud, Download, Play, Pause, ChevronsUpDown, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { LANGUAGES, VOICES, VOICE_MAP } from '@/lib/constants';
 import { transcribeUploadedVideo } from '@/ai/flows/transcribe-uploaded-video';
@@ -22,6 +22,9 @@ import { useRouter } from 'next/navigation';
 import { Textarea } from '@/components/ui/textarea';
 import jsPDF from 'jspdf';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   video: z
@@ -63,6 +66,7 @@ export function VideoTranslator() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [openLanguage, setOpenLanguage] = useState(false);
 
   const { toast } = useToast();
   const { user, isLoading: isUserLoading } = useUser();
@@ -241,16 +245,67 @@ export function VideoTranslator() {
                       )} />
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormField control={form.control} name="targetLanguage" render={({ field }) => (
-                          <FormItem>
+                      <FormField
+                        control={form.control}
+                        name="targetLanguage"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
                             <FormLabel>2. Language</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl><SelectTrigger><SelectValue placeholder="Select a language" /></SelectTrigger></FormControl>
-                              <SelectContent>{LANGUAGES.map((lang) => (<SelectItem key={lang.value} value={lang.value}>{lang.label}</SelectItem>))}</SelectContent>
-                            </Select>
+                            <Popover open={openLanguage} onOpenChange={setOpenLanguage}>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    className={cn(
+                                      "w-full justify-between",
+                                      !field.value && "text-muted-foreground"
+                                    )}
+                                  >
+                                    {field.value
+                                      ? LANGUAGES.find(
+                                          (language) => language.value === field.value
+                                        )?.label
+                                      : "Select a language"}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                <Command>
+                                  <CommandInput placeholder="Search language..." />
+                                  <CommandEmpty>No language found.</CommandEmpty>
+                                  <CommandList>
+                                    <CommandGroup>
+                                      {LANGUAGES.map((language) => (
+                                        <CommandItem
+                                          value={language.label}
+                                          key={language.value}
+                                          onSelect={() => {
+                                            form.setValue("targetLanguage", language.value)
+                                            setOpenLanguage(false)
+                                          }}
+                                        >
+                                          <Check
+                                            className={cn(
+                                              "mr-2 h-4 w-4",
+                                              language.value === field.value
+                                                ? "opacity-100"
+                                                : "opacity-0"
+                                            )}
+                                          />
+                                          {language.label}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
                             <FormMessage />
                           </FormItem>
-                        )} />
+                        )}
+                      />
                       <FormField control={form.control} name="voice" render={({ field }) => (
                           <FormItem>
                             <FormLabel>3. Voice</FormLabel>
