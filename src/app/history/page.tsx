@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Timestamp } from 'firebase/firestore';
 import { Download, Loader2 } from 'lucide-react';
-import React from 'react';
+import React, { useEffect } from 'react';
 import jsPDF from 'jspdf';
 
 interface HistoryItem {
@@ -90,17 +90,18 @@ export default function HistoryPage() {
   const { user, isLoading } = useUser();
   const router = useRouter();
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/login');
+    }
+  }, [isLoading, user, router]);
+
+  if (isLoading || !user) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <p>Loading...</p>
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
-  }
-
-  if (!user) {
-    router.push('/login');
-    return null;
   }
 
   return (
