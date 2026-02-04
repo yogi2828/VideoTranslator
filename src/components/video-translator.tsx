@@ -14,8 +14,7 @@ import { Loader2, UploadCloud, Download, Play, Pause, ChevronsUpDown, Check } fr
 import { useToast } from '@/hooks/use-toast';
 import { LANGUAGES, VOICES, VOICE_MAP } from '@/lib/constants';
 import { transcribeUploadedVideo } from '@/ai/flows/transcribe-uploaded-video';
-import { translateTranscribedText } from '@/ai/flows/translate-transcribed-text';
-import { generateTranslatedAudio } from '@/ai/flows/generate-translated-audio';
+import { translateAndGenerateAudio } from '@/ai/flows/translate-and-generate-audio';
 import { useUser, useFirestore } from '@/firebase';
 import { saveTranslationHistory } from '@/firebase/firestore/history';
 import { useRouter } from 'next/navigation';
@@ -116,22 +115,18 @@ export function VideoTranslator() {
     try {
       const videoDataUri = await readFileAsDataURL(videoFile);
 
-      // --- Start processing, updating UI incrementally ---
-
+      // --- Step 1: Transcription ---
       const { transcription } = await transcribeUploadedVideo({ videoDataUri });
       setTranscription(transcription);
 
-      const { translatedText } = await translateTranscribedText({
+      // --- Step 2: Translation and Audio Generation ---
+      const voiceName = VOICE_MAP[data.targetLanguage as keyof typeof VOICE_MAP]?.[data.voice as keyof typeof VOICE_MAP['en']] || VOICE_MAP['en']['male'];
+      const { translatedText, audioDataUri } = await translateAndGenerateAudio({
         text: transcription,
         targetLanguage: data.targetLanguage,
-      });
-      setTranslatedText(translatedText);
-      
-      const voiceName = VOICE_MAP[data.targetLanguage as keyof typeof VOICE_MAP]?.[data.voice as keyof typeof VOICE_MAP['en']] || VOICE_MAP['en']['male'];
-      const { audioDataUri } = await generateTranslatedAudio({
-        translatedText,
         voiceName: voiceName,
       });
+      setTranslatedText(translatedText);
       setAudioUrl(audioDataUri);
       
       // Save to history once all data is available
