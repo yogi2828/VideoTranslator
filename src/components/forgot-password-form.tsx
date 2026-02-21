@@ -63,8 +63,9 @@ export function ForgotPasswordForm() {
     try {
       await sendPasswordResetEmail(auth, email);
       toast({
-        title: 'Password Reset Email Sent',
-        description: 'Please check your inbox for instructions to reset your password.',
+        title: 'Check Your Email',
+        description:
+          'If an account exists for that email, a password reset link has been sent. Please also check your spam folder.',
       });
       form.reset();
     } catch (error: any) {
@@ -87,7 +88,9 @@ export function ForgotPasswordForm() {
           </div>
         </Link>
         <CardTitle className="text-2xl font-bold">Forgot Password</CardTitle>
-        <CardDescription>Enter your email to receive a reset link.</CardDescription>
+        <CardDescription>
+          Enter your email to receive a reset link.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
